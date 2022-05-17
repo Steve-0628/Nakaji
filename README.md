@@ -1,6 +1,9 @@
 # Nakaji
 某有名中二心をくすぐられる音ゲーシミュレータ。
 
+# 実行方法
+Unityにプロジェクトを読ませて、Mainのシーンを読ませて、white.txt(SUSファイル)をAssets/Resources/white.txtに置くと、なんか流れてくる。
+
 ## 特徴
 無駄にリアルなスライダー
 

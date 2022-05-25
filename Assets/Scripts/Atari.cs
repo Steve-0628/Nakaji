@@ -46,26 +46,46 @@ public class Atari : MonoBehaviour
         }
     }
 
+    private string gk(string c){
+        return Convert.ToString(Convert.ToInt32(Input.GetKey(c)));
+    }
+    private string gc(UnityEngine.KeyCode c){
+        return Convert.ToString(Convert.ToInt32(Input.GetKey(c)));
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.K))
         {
             sound01.PlayOneShot(sound01.clip);
         }
-        
+        if(isRunning && (serialPort == null || !serialPort.IsOpen)){
+            message = gc(KeyCode.Tab) + gc(KeyCode.Tab) + gk("q") + gk("w") + gk("e") + gk("r") + gk("t") + gk("y") + gk("u") + gk("i") + gk("o") + gk("p") + gk("@") + gk("[") + gc(KeyCode.Return) + gc(KeyCode.Return);
+            isNewMessageReceived = true;
+        }
         if (isNewMessageReceived)
         {
-
-            char[] cs = Convert.ToString(Convert.ToInt32(message, 16), 2).ToCharArray();
+            char[] cs;
+            if(message is String && message.ToCharArray().Length == 16){
+                cs = message.ToCharArray();
+            }else {
+                cs = Convert.ToString(Convert.ToInt32(message, 16), 2).ToCharArray();
+            }
             Array.Reverse(cs);
             cs = new String(cs).PadRight(16, '0').ToCharArray();
             Array.Reverse(cs);
 
             for (int i = 0; i < cs.Length; i++)
-                if (cs[i] == '0')
-                    tap[i].SetActive(false);
-                else if (cs[i] == '1')
+                if (cs[i] == '0'){
+                    try{
+                        tap[i].SetActive(false);
+                    }catch(Exception e){
+                        Debug.LogWarning(Convert.ToString(i) + " " + cs.Length + " " + new String(cs));
+                    }
+                }
+                else if (cs[i] == '1'){
                     tap[i].SetActive(true);
+                }
 
             String color = "";
             for (int i = 0; i < cs.Length / 4; i++)
@@ -74,7 +94,7 @@ public class Atari : MonoBehaviour
                 else
                     color = "0000" + color;
 
-            serialPort.Write(color+";");
+            Write(color+";");
             Debug.Log(color);
             //char[] cs = message.ToCharArray();
 
@@ -130,15 +150,26 @@ public class Atari : MonoBehaviour
         
     //}
 
-    private SerialPort serialPort;
+    private SerialPort serialPort = null;
     private void Open()
     {
-        serialPort = new SerialPort(@"COM3", 2000000);
-        serialPort.Open();
-        Debug.Log("OPEN PORT");
+        try{
+        serialPort = new SerialPort(@"COM3", 2000000); // hardcoding may not be good
+        serialPort.Open();                             // gives error if COM3 not found
+        Debug.Log("OPEN PORT");                        // must try/catch and use keyboard instead
+        
         isRunning = true;
         thread = new Thread(Read);
         thread.Start();
+        }
+        catch(System.IO.IOException e)
+        {
+            Debug.LogWarning("Probably no COM3; falling back to keyboard" + e.Message);
+            isRunning = true;
+
+        }
+        finally {
+        }
 
     }
 
@@ -156,10 +187,20 @@ public class Atari : MonoBehaviour
                 Debug.LogWarning(e.Message);
             }
         }
+
+        // while(isRunning && (serialPort == null || !serialPort.IsOpen)) {
+        //     Debug.LogWarning("serialPort is null");
+        //     if(Input.GetKey(KeyCode.A)){
+        //         Debug.LogWarning("KeyA");
+        //         message = "11111111";
+        //         isNewMessageReceived = true;
+        //     }
+        // }
     }
 
     public void Write(string message)
     {
+        if(serialPort != null && serialPort.IsOpen){
         try
         {
             serialPort.Write(message);
@@ -167,6 +208,7 @@ public class Atari : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogWarning(e.Message);
+        }
         }
     }
 }

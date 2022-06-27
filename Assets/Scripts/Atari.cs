@@ -70,10 +70,11 @@ public class Atari : MonoBehaviour
                 cs = message.ToCharArray();
             }else {
                 cs = Convert.ToString(Convert.ToInt32(message, 16), 2).ToCharArray();
+                Array.Reverse(cs);
+                cs = new String(cs).PadRight(16, '0').ToCharArray();
+                Array.Reverse(cs);
             }
-            Array.Reverse(cs);
-            cs = new String(cs).PadRight(16, '0').ToCharArray();
-            Array.Reverse(cs);
+
 
             for (int i = 0; i < cs.Length; i++)
                 if (cs[i] == '0'){
@@ -110,6 +111,7 @@ public class Atari : MonoBehaviour
     int[] led = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     private void OnCollisionEnter(Collision collision)
     {
+        Debug.LogWarning("OnCollisionEnter");
         if (collision.gameObject.tag == "Notes")
         {
             sound01.PlayOneShot(sound01.clip);
@@ -141,14 +143,14 @@ public class Atari : MonoBehaviour
             Write(str + ";");
         }
     }
-    //private void OnCollisionStay(Collision collision)
-    //{
-    //    foreach(ContactPoint cp in collision.contacts)
-    //    {
-    //        Debug.Log(cp.point.x);
-    //    }
-        
-    //}
+    private void OnCollisionStay(Collision collision)
+    {
+        //Debug.LogWarning("OnCollisionStay");
+       foreach(ContactPoint cp in collision.contacts)
+       {
+           //Debug.LogWarning(cp.point.x);
+       }
+    }
 
     private SerialPort serialPort = null;
     private void Open()
